@@ -1,12 +1,19 @@
-# VibeVoice ASR Portable RU
+<div align="center">
 
-[![Stars](https://img.shields.io/github/stars/timoncool/VibeVoice_ASR_portable_ru?style=social)](https://github.com/timoncool/VibeVoice_ASR_portable_ru/stargazers)
+# VibeVoice ASR Portable
 
-Портативная версия VibeVoice ASR для Windows с полной русификацией интерфейса.
+**Портативное распознавание речи для Windows — Microsoft VibeVoice, установка в один клик, 100% офлайн.**
 
-VibeVoice ASR — современная модель распознавания речи от Microsoft, которая преобразует аудио в текст с высокой точностью и поддержкой диаризации спикеров.
+[![Stars](https://img.shields.io/github/stars/timoncool/VibeVoice_ASR_portable_ru?style=flat-square)](https://github.com/timoncool/VibeVoice_ASR_portable_ru/stargazers)
+[![License](https://img.shields.io/github/license/timoncool/VibeVoice_ASR_portable_ru?style=flat-square)](LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/timoncool/VibeVoice_ASR_portable_ru?style=flat-square)](https://github.com/timoncool/VibeVoice_ASR_portable_ru/commits)
+[![Downloads](https://img.shields.io/github/downloads/timoncool/VibeVoice_ASR_portable_ru/total?style=flat-square)](https://github.com/timoncool/VibeVoice_ASR_portable_ru/releases)
 
 ![Интерфейс VibeVoice ASR](assets/screenshot.png)
+
+</div>
+
+VibeVoice ASR — современная модель распознавания речи от Microsoft, которая преобразует аудио в текст с высокой точностью и поддержкой диаризации спикеров. Полная русификация интерфейса.
 
 ## Возможности
 
@@ -152,24 +159,21 @@ VibeVoice_ASR_portable_ru/
 - [Репозиторий Microsoft VibeVoice](https://github.com/microsoft/VibeVoice)
 - [Телеграм канал Нейро-Софт](https://t.me/neuroport)
 
-## Другие портативные нейросети
+## Другие проекты [@timoncool](https://github.com/timoncool)
 
 | Проект | Описание |
 |--------|----------|
-| [Foundation Music Lab](https://github.com/timoncool/Foundation-Music-Lab) | Генерация музыки + таймлайн-редактор |
-| [LavaSR](https://github.com/timoncool/LavaSR_portable_ru) | Улучшение качества аудио |
-| [Qwen3-TTS](https://github.com/timoncool/Qwen3-TTS_portable_rus) | Синтез речи (TTS) от Qwen |
-| [SuperCaption Qwen3-VL](https://github.com/timoncool/SuperCaption_Qwen3-VL) | Генерация описаний изображений |
+| [ACE-Step Studio](https://github.com/timoncool/ACE-Step-Studio) | AI-студия музыки — песни, вокал, каверы, клипы |
+| [Foundation Music Lab](https://github.com/timoncool/Foundation-Music-Lab) | Генерация музыки + редактор таймлайна |
+| [LavaSR](https://github.com/timoncool/LavaSR_portable_ru) | Портативное улучшение аудио |
+| [Qwen3-TTS](https://github.com/timoncool/Qwen3-TTS_portable_rus) | Портативный TTS с клонированием голоса |
+| [SuperCaption Qwen3-VL](https://github.com/timoncool/SuperCaption_Qwen3-VL) | Портативное описание изображений |
 | [VideoSOS](https://github.com/timoncool/videosos) | AI-видеопродакшн в браузере |
 
 ## Авторы
 
 - **Nerual Dreming** ([t.me/nerual_dreming](https://t.me/nerual_dreming)) — [neuro-cartel.com](https://neuro-cartel.com) | основатель [ArtGeneration.me](https://artgeneration.me)
 - **Нейро-Софт** ([t.me/neuroport](https://t.me/neuroport)) — репаки и портативки нейросетей
-
----
-
-> **Если проект полезен — поставьте звёздочку!**
 
 ## Поддержать автора
 
@@ -186,8 +190,8 @@ VibeVoice_ASR_portable_ru/
 
 <a href="https://www.star-history.com/?repos=timoncool%2FVibeVoice_ASR_portable_ru&type=date&legend=top-left">
  <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=timoncool/VibeVoice_ASR_portable_ru&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=timoncool/VibeVoice_ASR_portable_ru&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=timoncool/VibeVoice_ASR_portable_ru&type=date&legend=top-left" />
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=timoncool/VibeVoice_ASR_portable_ru&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=timoncool/VibeVoice_ASR_portable_ru&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=timoncool/VibeVoice_ASR_portable_ru&type=date&legend=top-left" />
  </picture>
 </a>
