@@ -8,7 +8,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
     HF_HOME=/app/models \
     HUGGINGFACE_HUB_CACHE=/app/models \
-    TRANSFORMERS_CACHE=/app/models \
     TORCH_HOME=/app/models/torch \
     XDG_CACHE_HOME=/app/cache \
     GRADIO_TEMP_DIR=/app/temp \
@@ -42,9 +41,9 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pip3 install --no-cache-dir flash-attn --no-build-isolation \
     || echo "⚠ Flash Attention не установлен, работаем в обычном режиме"
 
-# ── Приложение ────────────────────────────────────────────────────
+# ── Приложение ───────────────────────────────────────────────────
 COPY app.py .
-COPY run_app.py .      
+COPY run_app.py .
 COPY vibevoice/ ./vibevoice/
 COPY assets/ ./assets/
 
