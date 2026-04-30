@@ -1,6 +1,6 @@
 services:
   vibevoice:
-    image: vibevoice-ru:latest
+    image: vibevoice-ru-4bit:latest
     build:
       context: .
       args:
@@ -11,12 +11,18 @@ services:
     ports:
       - "7860:7860"
     volumes:
-      # output монтируем наружу — транскрипции сохраняются на хосте
+      # Транскрипции сохраняются на хосте
       - ./output:/app/output
-      # Если хочешь переиспользовать уже скачанную модель с хоста:
-      # - /your/hf_cache/VibeVoice-ASR-HF:/app/models/VibeVoice-ASR-HF:ro
+      # Опционально: если модель уже скачана на хосте — можно подмонтировать
+      # вместо повторной загрузки при пересборке:
+      # - /path/to/hf_cache/VibeVoice-ASR-4bit:/app/models/VibeVoice-ASR-4bit:ro
     environment:
-      - VIBEVOICE_MODEL_PATH=/app/models/VibeVoice-ASR-HF
+      # По умолчанию — 4-bit для RTX 4060 Ti 16 GB
+      - VIBEVOICE_MODEL_REPO=scerz/VibeVoice-ASR-4bit
+      - VIBEVOICE_MODEL_PATH=/app/models/VibeVoice-ASR-4bit
+      # Чтобы переключиться на полную модель (нужно больше 16 GB VRAM):
+      # - VIBEVOICE_MODEL_REPO=microsoft/VibeVoice-ASR-HF
+      # - VIBEVOICE_MODEL_PATH=/app/models/VibeVoice-ASR-HF
     deploy:
       resources:
         reservations:

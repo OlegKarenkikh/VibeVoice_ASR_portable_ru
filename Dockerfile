@@ -1,7 +1,7 @@
-# CUDA 12.6 + cuDNN runtime (совместимо с RTX 30xx/40xx/50xx)
+# CUDA 12.6 + RTX 4060 Ti friendly
 FROM nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
 
-# ── Переменные окружения ──────────────────────────────────────
+# ── Окружение ───────────────────────────────────────────────
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=utf-8 \
@@ -13,9 +13,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     GRADIO_TEMP_DIR=/app/temp \
     GRADIO_SERVER_NAME=0.0.0.0 \
     GRADIO_SERVER_PORT=7860 \
-    VIBEVOICE_MODEL_PATH=/app/models/VibeVoice-ASR-HF
+    # Модель по умолчанию — 4-bit для 16 GB VRAM
+    VIBEVOICE_MODEL_REPO=scerz/VibeVoice-ASR-4bit \
+    VIBEVOICE_MODEL_PATH=/app/models/VibeVoice-ASR-4bit
 
-# ── Системные зависимости ─────────────────────────────────────
+# ── Системные пакеты (FFmpeg, ninja, dev-tools) ───────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.12 python3.12-venv python3-pip python3.12-dev \
     ffmpeg \
@@ -24,48 +26,48 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git curl ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# python3 → python3.12
+# alias python3 → python3.12
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1
 
 WORKDIR /app
 RUN mkdir -p models cache temp output
 
-# ── PyTorch с CUDA 12.6 ───────────────────────────────────────
+# ── PyTorch + Flash Attention ─────────────────────────────────────────
 RUN pip3 install --no-cache-dir \
     torch==2.7.1 torchaudio==2.7.1 \
     --index-url https://download.pytorch.org/whl/cu126
 
-# ── Зависимости приложения ────────────────────────────────────
 COPY requirements.txt .
 RUN pip3 install --no-cache-dir -r requirements.txt
 
-# ── Flash Attention 2 (на Linux компилируется из исходников) ──
-# Нужен build-essential и ninja-build (установлены выше).
-# --no-build-isolation использует уже установленный torch.
 RUN pip3 install --no-cache-dir flash-attn --no-build-isolation \
-    || echo "⚠ Flash Attention не собрался, продолжаем без него"
+    || echo "⚠ Flash Attention не установлен, работаем в обычном режиме"
 
-# ── Копируем код приложения ───────────────────────────────────
+# ── Приложение ────────────────────────────────────────────────────
 COPY app.py .
 COPY vibevoice/ ./vibevoice/
 COPY assets/ ./assets/
 
-# ── Предзагрузка модели в образ при сборке ────────────────────
-# Модель 9B BF16 ≈ 18 GB на диске.
-# Если нужен токен (приватный доступ): docker build --build-arg HF_TOKEN=hf_xxx ...
+# ── Скачиваем 4-bit модель при сборке ───────────────────────────
+# scerz/VibeVoice-ASR-4bit ≈ 5-6 GB VRAM (подходит для RTX 4060 Ti 16 GB)
+# Для переключения на полную модель — см. docker-compose.yml
 ARG HF_TOKEN=""
 RUN python3 - <<'EOF'
 import os
 from huggingface_hub import snapshot_download
 
-token = os.environ.get("HF_TOKEN") or None
+model_repo = os.environ.get("VIBEVOICE_MODEL_REPO", "scerz/VibeVoice-ASR-4bit")
+model_dir  = os.environ.get("VIBEVOICE_MODEL_PATH", "/app/models/VibeVoice-ASR-4bit")
+token      = os.environ.get("HF_TOKEN") or None
+
+os.makedirs(model_dir, exist_ok=True)
 snapshot_download(
-    repo_id="microsoft/VibeVoice-ASR-HF",
-    local_dir="/app/models/VibeVoice-ASR-HF",
+    repo_id=model_repo,
+    local_dir=model_dir,
     token=token,
     ignore_patterns=["*.msgpack", "flax_model*", "tf_model*", "rust_model*"],
 )
-print("✅ Модель загружена в /app/models/VibeVoice-ASR-HF")
+print(f"✅ Модель {model_repo} загружена в {model_dir}")
 EOF
 
 EXPOSE 7860
