@@ -5,7 +5,6 @@ FROM nvidia/cuda:12.6.3-cudnn-runtime-ubuntu24.04
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=utf-8 \
-    # Фикс PEP 668: разрешаем pip писать в системные пакеты (мы в контейнере, всё в порядке)
     PIP_BREAK_SYSTEM_PACKAGES=1 \
     HF_HOME=/app/models \
     HUGGINGFACE_HUB_CACHE=/app/models \
@@ -18,7 +17,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     VIBEVOICE_MODEL_REPO=scerz/VibeVoice-ASR-4bit \
     VIBEVOICE_MODEL_PATH=/app/models/VibeVoice-ASR-4bit
 
-# ── Системные пакеты ──────────────────────────────────────────
+# ── Системные пакеты ─────────────────────────────────────────
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.12 python3.12-venv python3-pip python3.12-dev \
     ffmpeg \
@@ -43,14 +42,13 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 RUN pip3 install --no-cache-dir flash-attn --no-build-isolation \
     || echo "⚠ Flash Attention не установлен, работаем в обычном режиме"
 
-# ── Приложение ──────────────────────────────────────────────────
+# ── Приложение ────────────────────────────────────────────────────
 COPY app.py .
+COPY run_app.py .      
 COPY vibevoice/ ./vibevoice/
 COPY assets/ ./assets/
 
-# ── Предзагрузка модели (BuildKit secret — безопасно) ──────────────
-# Токен передаётся через --secret id=hf_token (не попадает в слои образа).
-# scerz/VibeVoice-ASR-4bit — публичная, токен не нужен.
+# ── Предзагрузка модели (BuildKit secret — безопасно) ────────────────────
 RUN --mount=type=secret,id=hf_token,required=false \
     python3 - <<'EOF'
 import os
@@ -59,7 +57,6 @@ from huggingface_hub import snapshot_download
 model_repo = os.environ.get("VIBEVOICE_MODEL_REPO", "scerz/VibeVoice-ASR-4bit")
 model_dir  = os.environ.get("VIBEVOICE_MODEL_PATH", "/app/models/VibeVoice-ASR-4bit")
 
-# Читаем токен из BuildKit secret (если предоставлен)
 try:
     token = open("/run/secrets/hf_token").read().strip() or None
 except FileNotFoundError:
