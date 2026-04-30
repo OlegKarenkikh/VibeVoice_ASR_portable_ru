@@ -19,9 +19,6 @@ jobs:
       - name: Pull image from Docker Hub
         run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest
 
-      # ----------------------------------------------------------------
-      # Test 1: container starts
-      # ----------------------------------------------------------------
       - name: Test 1 - Container starts
         run: |
           docker run --rm \
@@ -29,92 +26,35 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
             python3 -c "print('Container OK')"
 
-      # ----------------------------------------------------------------
-      # Test 2: Python imports
-      # ----------------------------------------------------------------
       - name: Test 2 - Python imports
         run: |
           docker run --rm \
+            -v "$PWD/tests:/tests:ro" \
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
-            python3 -c "\
-import torch, torchaudio, transformers, gradio, soundfile, numpy; \
-print('torch:', torch.__version__); \
-print('transformers:', transformers.__version__); \
-print('gradio:', gradio.__version__); \
-print('CUDA:', torch.cuda.is_available())"
+            python3 /tests/check_imports.py
 
-      # ----------------------------------------------------------------
-      # Test 3: model files on disk
-      # ----------------------------------------------------------------
       - name: Test 3 - Model files present
         run: |
           docker run --rm \
+            -v "$PWD/tests:/tests:ro" \
             -e VIBEVOICE_MODEL_PATH=/app/models/VibeVoice-ASR-4bit \
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
-            python3 -c "\
-import os; \
-p = os.environ.get('VIBEVOICE_MODEL_PATH', '/app/models/VibeVoice-ASR-4bit'); \
-assert os.path.isdir(p), 'Model dir not found: ' + p; \
-files = os.listdir(p); \
-print('Files:', len(files), files[:5]); \
-assert any(f.endswith('.json') for f in files), 'No .json config found'; \
-print('Model check PASSED')"
+            python3 /tests/check_model.py
 
-      # ----------------------------------------------------------------
-      # Test 4: FFmpeg
-      # ----------------------------------------------------------------
       - name: Test 4 - FFmpeg available
         run: |
           docker run --rm \
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
             ffmpeg -version 2>&1 | head -1
 
-      # ----------------------------------------------------------------
-      # Test 5: Gradio HTTP stack (stub, no model)
-      # Python script written to a temp file on the runner, then
-      # copied into the container via docker cp — avoids all shell
-      # quoting / escaping issues entirely.
-      # ----------------------------------------------------------------
       - name: Test 5 - Gradio HTTP stack (stub, no model)
         timeout-minutes: 2
         run: |
-          # Write the test script on the runner (no quoting tricks)
-          cat > /tmp/gradio_stub.py << 'PYEOF'
-          import gradio as gr
-          import time
-          import inspect
-
-          demo = gr.Interface(
-              fn=lambda x: x,
-              inputs=gr.Textbox(),
-              outputs=gr.Textbox(),
-              title="Smoke Test",
-          )
-
-          # Gradio 4.x has prevent_thread_lock, 5/6 removed it
-          launch_kwargs = dict(server_name="0.0.0.0", server_port=7860)
-          sig = inspect.signature(demo.launch)
-          if "prevent_thread_lock" in sig.parameters:
-              launch_kwargs["prevent_thread_lock"] = True
-              demo.launch(**launch_kwargs)
-              time.sleep(60)
-          else:
-              # Gradio 5+: launch() blocks; run in thread
-              import threading
-              t = threading.Thread(target=demo.launch, kwargs=launch_kwargs, daemon=True)
-              t.start()
-              print("Gradio thread started", flush=True)
-              time.sleep(60)
-          PYEOF
-
-          # Start container (no entrypoint — skip model check)
           docker run -d --name vv_gradio_test \
+            -v "$PWD/tests:/tests:ro" \
             --entrypoint python3 \
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
-            /tmp/gradio_stub.py
-
-          # Copy the script into the running container
-          docker cp /tmp/gradio_stub.py vv_gradio_test:/tmp/gradio_stub.py
+            /tests/gradio_stub.py
 
           echo "Waiting for Gradio stub..."
           for i in $(seq 1 12); do
@@ -129,7 +69,7 @@ print('Model check PASSED')"
             fi
           done
 
-          echo "Test 5 FAILED - Gradio did not respond in 60s. Logs:"
+          echo "Test 5 FAILED - Gradio did not respond. Logs:"
           docker logs vv_gradio_test
           docker stop vv_gradio_test
           exit 1
