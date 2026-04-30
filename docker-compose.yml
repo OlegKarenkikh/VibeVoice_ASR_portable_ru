@@ -1,0 +1,27 @@
+services:
+  vibevoice:
+    image: vibevoice-ru:latest
+    build:
+      context: .
+      args:
+        # HF_TOKEN нужен только если модель приватная
+        HF_TOKEN: ${HF_TOKEN:-}
+    container_name: vibevoice_asr
+    restart: unless-stopped
+    ports:
+      - "7860:7860"
+    volumes:
+      # output монтируем наружу — транскрипции сохраняются на хосте
+      - ./output:/app/output
+      # Если хочешь переиспользовать уже скачанную модель с хоста:
+      # - /your/hf_cache/VibeVoice-ASR-HF:/app/models/VibeVoice-ASR-HF:ro
+    environment:
+      - VIBEVOICE_MODEL_PATH=/app/models/VibeVoice-ASR-HF
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    shm_size: '4gb'
