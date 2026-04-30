@@ -47,33 +47,14 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
             ffmpeg -version 2>&1 | head -1
 
+      # Test 5: self-contained - Gradio starts in a thread, urllib polls it.
+      # No daemon container, no docker exec, no curl dependency.
+      # Exit code from gradio_stub.py drives pass/fail.
       - name: Test 5 - Gradio HTTP stack (stub, no model)
-        timeout-minutes: 2
+        timeout-minutes: 3
         run: |
-          docker run -d --name vv_gradio_test \
+          docker run --rm \
             -v "$PWD/tests:/tests:ro" \
             --entrypoint python3 \
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
             /tests/gradio_stub.py
-
-          echo "Waiting for Gradio stub..."
-          for i in $(seq 1 12); do
-            sleep 5
-            STATUS=$(docker exec vv_gradio_test \
-              curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:7860/ 2>/dev/null || echo "000")
-            echo "Attempt $i: HTTP $STATUS"
-            if [ "$STATUS" = "200" ]; then
-              echo "Test 5 PASSED - Gradio HTTP 200"
-              docker stop vv_gradio_test
-              exit 0
-            fi
-          done
-
-          echo "Test 5 FAILED - Gradio did not respond. Logs:"
-          docker logs vv_gradio_test
-          docker stop vv_gradio_test
-          exit 1
-
-      - name: Cleanup
-        if: always()
-        run: docker rm -f vv_gradio_test 2>/dev/null || true
