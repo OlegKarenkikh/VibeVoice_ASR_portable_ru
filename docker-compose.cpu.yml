@@ -1,0 +1,20 @@
+# docker-compose.cpu.yml
+# Тестовый запуск без GPU (проверка запуска приложения без NVIDIA).
+# Использовать только для CI и отладки — распознавание будет очень медленным.
+#
+# Запуск:
+#   docker compose -f docker-compose.cpu.yml up
+
+services:
+  vibevoice-cpu:
+    image: olegkarenkikh/vibevoice-asr-ru:latest
+    container_name: vibevoice_asr_cpu_test
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./output:/app/output
+    environment:
+      - VIBEVOICE_MODEL_REPO=scerz/VibeVoice-ASR-4bit
+      - VIBEVOICE_MODEL_PATH=/app/models/VibeVoice-ASR-4bit
+    # GPU не требуется — блок deploy отсутствует
+    shm_size: '2gb'
