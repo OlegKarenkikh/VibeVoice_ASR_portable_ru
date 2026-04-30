@@ -19,42 +19,45 @@ jobs:
       - name: Pull image from Docker Hub
         run: docker pull ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest
 
+      # --entrypoint python3 bypasses entrypoint.sh + run_app.py + app.py entirely
       - name: Test 1 - Container starts
         run: |
           docker run --rm \
-            -e VIBEVOICE_MODEL_PATH=/app/models/VibeVoice-ASR-4bit \
+            --entrypoint python3 \
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
-            python3 -c "print('Container OK')"
+            -c "print('Container OK')"
 
       - name: Test 2 - Python imports
         run: |
           docker run --rm \
+            --entrypoint python3 \
             -v "$PWD/tests:/tests:ro" \
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
-            python3 /tests/check_imports.py
+            /tests/check_imports.py
 
       - name: Test 3 - Model files present
         run: |
           docker run --rm \
+            --entrypoint python3 \
             -v "$PWD/tests:/tests:ro" \
             -e VIBEVOICE_MODEL_PATH=/app/models/VibeVoice-ASR-4bit \
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
-            python3 /tests/check_model.py
+            /tests/check_model.py
 
       - name: Test 4 - FFmpeg available
         run: |
           docker run --rm \
+            --entrypoint ffmpeg \
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
-            ffmpeg -version 2>&1 | head -1
+            -version 2>&1 | head -1
 
-      # Test 5: self-contained - Gradio starts in a thread, urllib polls it.
-      # No daemon container, no docker exec, no curl dependency.
-      # Exit code from gradio_stub.py drives pass/fail.
+      # Test 5: gradio_stub.py starts Gradio in a thread,
+      # polls it with urllib, exits 0/1. No docker exec, no curl.
       - name: Test 5 - Gradio HTTP stack (stub, no model)
         timeout-minutes: 3
         run: |
           docker run --rm \
-            -v "$PWD/tests:/tests:ro" \
             --entrypoint python3 \
+            -v "$PWD/tests:/tests:ro" \
             ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru:latest \
             /tests/gradio_stub.py
