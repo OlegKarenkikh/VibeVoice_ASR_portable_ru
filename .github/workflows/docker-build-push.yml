@@ -5,7 +5,6 @@ on:
     branches:
       - main
     paths:
-      # Сборка только если поменялись эти файлы
       - Dockerfile
       - docker-compose.yml
       - requirements.txt
@@ -20,7 +19,6 @@ on:
         default: 'scerz/VibeVoice-ASR-4bit'
 
 env:
-  REGISTRY: docker.io
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/vibevoice-asr-ru
 
 jobs:
@@ -32,7 +30,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Свободим место на диске runner-а (модель тяжёлая)
       - name: Free disk space
         run: |
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
@@ -73,13 +70,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # HF_TOKEN — опционально, только для приватных моделей
           build-args: |
-            HF_TOKEN=${{ secrets.HF_TOKEN }}
             VIBEVOICE_MODEL_REPO=${{ steps.model.outputs.repo }}
-          # Кэш слоёв Docker между запусками (GitHub cache)
+          # HF_TOKEN передаётся через BuildKit secret — не попадает в слои образа
+          secrets: |
+            hf_token=${{ secrets.HF_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Image digest
-        run: echo "Pushed ${{ env.IMAGE_NAME }} digest ${{ steps.build-and-push.outputs.digest }}"
+        run: echo "Pushed ${{ env.IMAGE_NAME }} @ ${{ steps.build-and-push.outputs.digest }}"
