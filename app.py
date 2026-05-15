@@ -110,7 +110,7 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 TEMP_DIR.mkdir(exist_ok=True)
 
 AVAILABLE_MODELS = [
-    ("VibeVoice ASR (полная модель)", os.environ.get("VIBEVOICE_MODEL_PATH", "/app/models/VibeVoice-ASR-4bit")),
+    ("VibeVoice ASR (полная модель)", os.environ.get("VIBEVOICE_FULL_MODEL_PATH", "microsoft/VibeVoice-ASR")),
     ("VibeVoice ASR 4-bit (экономия памяти)", os.environ.get("VIBEVOICE_MODEL_PATH", "/app/models/VibeVoice-ASR-4bit")),
 ]
 
